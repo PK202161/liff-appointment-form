@@ -32,40 +32,42 @@
     <button type="submit">ส่งข้อมูล</button>
   </form>
 
-  <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      liff.init({ liffId: "2007529135-9pQPVpbP" })
-        .then(() => {
-          if (!liff.isLoggedIn()) liff.login();
-        })
-        .catch(err => alert("LIFF init error: " + err));
+<script>
+  function formatDate() {
+    const d = document.getElementById("date").value.split("-");
+    return `${parseInt(d[2])}/${parseInt(d[1])}`;
+  }
 
-      document.getElementById("appointment-form").addEventListener("submit", async (e) => {
-        e.preventDefault();
-        try {
-          const profile = await liff.getProfile();
-          const data = {
-            userId: profile.userId,
-            topic: document.getElementById("topic").value,
-            date: document.getElementById("date").value,
-            startTime: document.getElementById("startTime").value,
-            endTime: document.getElementById("endTime").value,
-            details: document.getElementById("details").value,
-            reminder: document.getElementById("reminder").value
-          };
+  function reminderLabel() {
+    const val = document.getElementById("reminder").value;
+    if (val === "15") return "15 นาที";
+    if (val === "30") return "30 นาที";
+    if (val === "60") return "1 ชั่วโมง";
+    return `${val} นาที`;
+  }
 
-          await fetch("https://n8npkapp.pktechnic.com/webhook/LINE-PAKEEN", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(data)
-          });
+  document.addEventListener("DOMContentLoaded", () => {
+    liff.init({ liffId: "2007529135-9pQPVpbP" })
+      .then(() => {
+        if (!liff.isLoggedIn()) liff.login();
+      })
+      .catch(err => alert("LIFF init error: " + err));
 
-          liff.closeWindow();
-        } catch (err) {
-          alert("เกิดข้อผิดพลาด: " + err);
-        }
-      });
+    document.getElementById("appointment-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      try {
+        await liff.sendMessages([
+          {
+            type: "text",
+            text: `บันทึกนัดหมาย\nเรื่อง ${document.getElementById("topic").value}\nวันที่ ${formatDate()}\nเวลา ${document.getElementById("startTime").value}-${document.getElementById("endTime").value}\nรายละเอียด ${document.getElementById("details").value}\nแจ้งเตือน ${reminderLabel()}`
+          }
+        ]);
+        liff.closeWindow();
+      } catch (err) {
+        alert("เกิดข้อผิดพลาด: " + err);
+      }
     });
-  </script>
+  });
+</script>
 </body>
 </html>
