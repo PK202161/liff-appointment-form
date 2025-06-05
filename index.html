@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>บันทึกนัดหมาย</title>
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <style>
+    body { font-family: sans-serif; padding: 20px; background: #e3f2fd; }
+    h2 { color: #0d47a1; }
+    label { display: block; margin-top: 15px; }
+    input, textarea, select { width: 100%; padding: 8px; margin-top: 5px; border-radius: 5px; border: 1px solid #ccc; }
+    button { margin-top: 20px; padding: 10px 15px; background: #2196f3; color: white; border: none; border-radius: 5px; cursor: pointer; }
+    button:hover { background: #1976d2; }
+  </style>
+</head>
+<body>
+  <h2>บันทึกนัดหมาย</h2>
+  <form id="appointment-form">
+    <label>เรื่อง:<input type="text" id="topic" required></label>
+    <label>วันที่:<input type="date" id="date" required></label>
+    <label>เวลาเริ่ม:<input type="time" id="startTime" required></label>
+    <label>เวลาสิ้นสุด:<input type="time" id="endTime" required></label>
+    <label>รายละเอียด:<textarea id="details" rows="3"></textarea></label>
+    <label>แจ้งเตือนล่วงหน้า:
+      <select id="reminder">
+        <option value="15">15 นาที</option>
+        <option value="30">30 นาที</option>
+        <option value="60">1 ชั่วโมง</option>
+      </select>
+    </label>
+    <button type="submit">ส่งข้อมูล</button>
+  </form>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      liff.init({ liffId: "YOUR_LIFF_ID" })
+        .then(() => {
+          if (!liff.isLoggedIn()) liff.login();
+        })
+        .catch(err => alert("LIFF init error: " + err));
+
+      document.getElementById("appointment-form").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        try {
+          const profile = await liff.getProfile();
+          const data = {
+            userId: profile.userId,
+            topic: document.getElementById("topic").value,
+            date: document.getElementById("date").value,
+            startTime: document.getElementById("startTime").value,
+            endTime: document.getElementById("endTime").value,
+            details: document.getElementById("details").value,
+            reminder: document.getElementById("reminder").value
+          };
+
+          await fetch("https://n8npkapp.pktechnic.com/webhook/LINE-PAKEEN", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
+          });
+
+          liff.closeWindow();
+        } catch (err) {
+          alert("เกิดข้อผิดพลาด: " + err);
+        }
+      });
+    });
+  </script>
+</body>
+</html>
